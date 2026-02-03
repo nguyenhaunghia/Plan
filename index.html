@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMART SCHOOL</title>
+  
+  <!-- Link Theme CSS (tách riêng từ Theme.html) -->
+  <link rel="stylesheet" href="css/theme.css">
+  
+  <!-- Các CDN khác nếu cần (từ Theme gốc, bạn có thể giữ hoặc di chuyển vào theme.css) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@800&display=swap" rel="stylesheet">
+</head>
+<body>
+<header>
+  <div class="logo-area">
+    <div class="logo">
+        <i class="bi bi-mortarboard-fill" style="color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);"></i>
+    </div>
+    <div class="program-info">
+      <div class="program-name">SMART SCHOOL</div>
+      <div class="version">Version 2.2.2</div>
+    </div>
+  </div>
+
+  <div class="user-area">
+    <div class="user-info d-none d-sm-block">
+      <div id="userName" class="fullname">Đang tải...</div>
+      <div id="userRole" class="role">---</div>
+    </div>
+    <div class="avatar-circle" id="userInitial">?</div>
+    <button class="logout-btn" onclick="logoutConfirm()"><i class="bi bi-power fs-5"></i></button>
+  </div>
+</header>
+
+<div class="container-fluid">
+  
+  <div class="welcome-section">
+    <h2 class="main-title-text">Kế hoạch thực hiện chương trình</h2>
+    <div class="title-underline"></div>
+  </div>
+
+  <div class="card-grid-container">
+
+    <div class="smart-card">
+      <div class="smart-card-header">
+        <i class="bi bi-journal-text"></i> THỰC HIỆN CHƯƠNG TRÌNH
+      </div>
+      
+      <div class="smart-card-body-scroll">
+        <div class="smart-menu-item d-flex justify-content-between align-items-center" 
+             data-bs-toggle="collapse" 
+             data-bs-target="#ReportSubmenu" 
+             aria-expanded="false" 
+             style="cursor: pointer;">
+             <div><i class="bi bi-file-earmark-bar-graph icon-report"></i> <span>Báo cáo thực hiện chương trình</span></div>
+             <i class="bi bi-chevron-down chevron-icon"></i>
+        </div>
+
+        <div class="collapse" id="ReportSubmenu">
+            <div onclick="navigateTo('report.html')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-pen me-2"></i> <span>Thủ công (Nhập liệu)</span>
+            </div>
+            <div onclick="navigateTo('areport.html')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-robot me-2"></i> <span>Tự động (Smart)</span>
+            </div>
+        </div>
+        
+        <div onclick="navigateTo('plan_today.html')" class="smart-menu-item">
+            <i class="bi bi-calendar-check icon-plan"></i> <span>Lịch dạy theo ngày</span>
+        </div>
+        
+        <div onclick="navigateTo('qreport.html')" class="smart-menu-item">
+            <i class="bi bi-pie-chart-fill icon-report"></i> <span>Tổng hợp, rà soát tiến độ</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="smart-card">
+      <div class="smart-card-header">
+        <i class="bi bi-calendar-event"></i> XÂY DỰNG KẾ HOẠCH
+      </div>
+      <div class="smart-card-body-scroll">
+        
+        <div class="smart-menu-item d-flex justify-content-between align-items-center" 
+             data-bs-toggle="collapse" 
+             data-bs-target="#PlanSubmenu" 
+             aria-expanded="false" 
+             style="cursor: pointer;">
+             <div><i class="bi bi-layers-half icon-plan"></i> <span>Phân phối chương trình</span></div>
+             <i class="bi bi-chevron-down chevron-icon"></i>
+        </div>
+        <div class="collapse" id="PlanSubmenu">
+            <div onclick="navigateTo('plan.html')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-pen me-2"></i> <span>Thủ công (Nhập liệu)</span>
+            </div>
+            <div onclick="navigateTo('uplan.html')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-robot me-2"></i> <span>Upload</span>
+            </div>
+        </div>
+
+        <div onclick="navigateTo('qplan.html')" class="smart-menu-item">
+            <i class="bi bi-speedometer2 icon-plan"></i> <span>Tổng hợp, thống kê kế hoạch</span>
+        </div>
+
+        <div onclick="showToast('Chức năng đang phát triển', 'info')" class="smart-menu-item">
+            <i class="bi bi-calendar-check icon-plan"></i> <span>Duyệt kế hoạch tổ</span>
+        </div>
+         <div onclick="showToast('Chức năng đang phát triển', 'info')" class="smart-menu-item">
+            <i class="bi bi-printer icon-plan"></i> <span>In ấn hồ sơ</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="smart-card">
+      <div class="smart-card-header">
+        <i class="bi bi-gear-wide-connected"></i> HỆ THỐNG
+      </div>
+      <div class="smart-card-body-scroll">
+        
+        <div class="smart-menu-item d-flex justify-content-between align-items-center" 
+             data-bs-toggle="collapse" 
+             data-bs-target="#accountSubmenu" 
+             aria-expanded="false" 
+             style="cursor: pointer;">
+             <div><i class="bi bi-person-badge icon-sys"></i> <span>Quản lý tài khoản</span></div>
+             <i class="bi bi-chevron-down chevron-icon"></i>
+        </div>
+        <div class="collapse" id="accountSubmenu">
+            <div onclick="showToast('Đang cập nhật tính năng phân quyền', 'warning')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-shield-lock me-2"></i> <span>Phân quyền người dùng</span>
+            </div>
+            <div onclick="showToast('Đang cập nhật tính năng hồ sơ', 'warning')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-person-lines-fill me-2"></i> <span>Hồ sơ cá nhân</span>
+            </div>
+        </div>
+
+        <div class="smart-menu-item d-flex justify-content-between align-items-center" 
+             data-bs-toggle="collapse" 
+             data-bs-target="#SystemParamSubmenu" 
+             aria-expanded="false" 
+             style="cursor: pointer;">
+             <div><i class="bi bi-sliders icon-sys"></i> <span>Quản lý danh mục</span></div>
+             <i class="bi bi-chevron-down chevron-icon"></i>
+        </div>
+        <div class="collapse" id="SystemParamSubmenu">
+            <div onclick="showToast('Sắp ra mắt: Danh mục năm học', 'info')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-calendar-range me-2"></i> <span>Danh mục năm học</span>
+            </div>
+            <div onclick="showToast('Sắp ra mắt: Danh mục lớp', 'info')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-people me-2"></i> <span>Danh mục lớp</span>
+            </div>
+            <div onclick="showToast('Sắp ra mắt: Danh mục môn', 'info')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-journal-bookmark me-2"></i> <span>Danh mục môn học</span>
+            </div>
+             <div onclick="showToast('Sắp ra mắt: Cấu hình chung', 'info')" class="submenu-item" style="cursor: pointer;">
+                 <i class="bi bi-tools me-2"></i> <span>Cấu hình chung</span>
+            </div>
+        </div>
+        
+        <div onclick="showToast('Chức năng sao lưu dữ liệu', 'info')" class="smart-menu-item">
+            <i class="bi bi-database-check icon-sys"></i> <span>Sao lưu dữ liệu</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Link Theme JS (tách riêng từ Theme.html) -->
+<script src="js/theme.js"></script>
+
+<script>
+  // Hàm chuyển trang nội bộ (redirect đến các file HTML riêng)
+  function navigateTo(page) {
+    window.location.href = page;  // Ví dụ: 'report.html', 'areport.html'...
+  }
+
+  // Load user từ localStorage khi trang mở
+  window.onload = function() {
+    try {
+      const userJson = localStorage.getItem('userData');
+      let user;
+
+      // Nếu không có user → redirect về login
+      if (!userJson || userJson === "undefined") {
+        console.warn("Không tìm thấy dữ liệu user → redirect về login");
+        window.location.href = 'login.html';
+        return;
+      }
+
+      user = JSON.parse(userJson);
+
+      // Hiển thị thông tin user
+      const elName = document.getElementById('userName');
+      const elRole = document.getElementById('userRole');
+      const elInit = document.getElementById('userInitial');
+
+      if (elName) elName.innerText = user.Name || user.Account || "User";
+      if (elRole) elRole.innerText = user.Permissions || "---";
+      
+      if (elInit) {
+        const displayName = user.Name || user.Account || "U";
+        elInit.innerText = displayName.trim().split(' ').pop().charAt(0).toUpperCase();
+      }
+
+    } catch (e) {
+      console.error("Lỗi load user:", e);
+      alert("Lỗi tải thông tin người dùng. Vui lòng đăng nhập lại.");
+      window.location.href = 'login.html';
+    }
+  };
+</script>
+</body>
+</html>
