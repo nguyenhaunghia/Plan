@@ -100,23 +100,11 @@
 <script src="script.js"></script>
 
 <script>
-  // --- CẤU HÌNH KẾT NỐI ---
-  const API_URL = "https://script.google.com/macros/s/AKfycbznKOzD1DnZtyWq1Pd-WfsXhrWuH2mgJ5XOjvHCmo5w_51OeJ0xHkSy3bvpdRtNmZlP/exec"; // <-- DÁN LINK WEB APP CỦA BẠN VÀO ĐÂY
+   
   
   const $ = id => document.getElementById(id);
   let currentLoggingUser = ""; // Biến lưu tạm user để đổi pass
 
-  // --- HÀM GỌI API ---
-  async function callBackend(action, data) {
-    const url = `${API_URL}?action=${action}&data=${encodeURIComponent(JSON.stringify(data))}`;
-    try {
-      const response = await fetch(url);
-      return await response.json();
-    } catch (e) {
-      console.error(e);
-      return { success: false, message: "Lỗi kết nối Server!" };
-    }
-  }
 
   // --- XỬ LÝ SỰ KIỆN ---
   function handleLoginSubmit(e) { e.preventDefault(); document.activeElement.blur(); processLogin(); }
