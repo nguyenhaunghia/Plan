@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Thiết lập Kế hoạch Dạy học</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ==========================================================================
+       1. GIỮ NGUYÊN CSS GỐC CỦA BẠN (CORE LAYOUT)
+       ========================================================================== */
+    html, body { height: 100%; margin: 0; overflow: hidden; }
+    body { background-color: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; display: flex; flex-direction: column; }
+    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .navbar-custom { background: #1e293b; color: white; padding: 0.5rem 1.5rem; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+    .main-content { flex-grow: 1; display: flex; flex-direction: column; padding: 12px; overflow: hidden; gap: 12px; }
+    
+    .filter-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); flex-shrink: 0; max-height: 180px; overflow-y: auto; }
+    
+    .filter-item { display: inline-block; margin-right: 10px; margin-bottom: 10px; vertical-align: bottom; }
+    .filter-label { font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
+    
+    .table-container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; flex-direction: column; flex-grow: 1; }
+    .table-responsive-custom { flex-grow: 1; overflow: auto; }
+    
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    
+    th { background: #f8fafc !important; color: #475569; font-weight: 600; font-size: 11px; text-transform: uppercase; padding: 12px 10px !important; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #e2e8f0 !important; white-space: nowrap; }
+    
+    td { padding: 10px !important; border-bottom: 1px solid #f1f5f9; white-space: nowrap; vertical-align: middle; }
+    .btn-action { padding: 2px 6px; font-size: 14px; margin: 0 2px; }
+    .pagination-wrapper { background: #fff; padding: 8px 15px; border-top: 1px solid #e2e8f0; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+    .page-link { cursor: pointer; color: #1e293b; border-radius: 4px !important; margin: 0 2px; }
+    .page-item.active .page-link { background-color: #1e293b; border-color: #1e293b; }
+
+    /* ==========================================================================
+       2. CSS CHO LOGIC CHECK TRÙNG (BẮT BUỘC CÓ)
+       ========================================================================== */
+    .status-icon { margin-left: 5px; display: inline-block; width: 20px; text-align: center; }
+    .row-error { background-color: #fff2f2 !important; border-left: 3px solid #dc3545; }
+    .row-error input, .row-error select { border-color: #dc3545; background-color: #fff; }
+
+    /* ==========================================================================
+       3. RESPONSIVE / MOBILE FRIENDLY (GIỮ NGUYÊN)
+       ========================================================================== */
+    @media (max-width: 768px) {
+        .navbar-custom { padding: 0.5rem 1rem; }
+        .main-content { padding: 8px; gap: 8px; }
+        .filter-item { display: block; width: 100%; margin-right: 0; } 
+        .filter-item select { width: 100%; }
+
+        #addModal table, #addModal thead, #addModal tbody, #addModal th, #addModal td, #addModal tr { 
+            display: block; 
+        }
+        #addModal thead tr { display: none; }
+        #addModal tbody tr { 
+            margin-bottom: 15px; border: 1px solid #e2e8f0; border-radius: 8px; 
+            padding: 10px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        #addModal td { 
+            border: none !important; border-bottom: 1px solid #f1f5f9 !important; 
+            position: relative; padding-left: 0 !important; padding-right: 0 !important;
+            padding-top: 5px !important; padding-bottom: 5px !important; display: flex; flex-direction: column;
+        }
+        #addModal td:first-child {
+            flex-direction: row; justify-content: space-between; align-items: center;
+            background-color: #f8fafc; margin: -10px -10px 10px -10px; padding: 8px 15px !important;
+            border-bottom: 1px solid #e2e8f0 !important; border-radius: 8px 8px 0 0;
+        }
+        #addModal td[data-label]:before { 
+            content: attr(data-label); font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px;
+        }
+        #addModal input, #addModal select { width: 100% !important; }
+        .pagination-wrapper { flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loader" class="loading-overlay"><div class="spinner-border text-primary mb-2"></div><h6 class="fw-bold">Đang tải dữ liệu Kế hoạch...</h6></div>
+<div class="toast-container" id="toastBox"></div>
+
+<nav class="navbar-custom">
+  <div class="d-flex align-items-center">
+    <button class="btn btn-outline-light btn-sm me-3" onclick="goHome()" title="Trang chủ"><i class="bi bi-house"></i></button>
+    <h5 class="m-0 fw-bold text-truncate" style="max-width: 300px;">PHÂN PHỐI CHƯƠNG TRÌNH</h5>
+  </div>
+  <button class="btn btn-primary btn-sm fw-bold shadow-sm" onclick="openAddModal()">
+    <i class="bi bi-plus-lg me-1"></i> THÊM MỚI
+  </button>
+</nav>
+
+<div class="main-content">
+  <div class="filter-card"><div id="filterArea"></div></div>
+  
+  <div class="table-container">
+    <div class="table-responsive-custom">
+      <table class="table mb-0">
+        <thead id="hTable"></thead>
+        <tbody id="bTable"></tbody>
+      </table>
+    </div>
+    <div class="pagination-wrapper">
+      <div id="pageInfo" class="small text-muted fw-bold"></div>
+      <nav><ul class="pagination pagination-sm m-0" id="paginationControls"></ul></nav>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addModal" data-bs-backdrop="static" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable"> <div class="modal-content border-0 shadow">
+      <div class="modal-header py-2 bg-dark text-white">
+        <h6 class="modal-title fw-bold" id="modalTitle">THIẾT LẬP KẾ HOẠCH MỚI</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      
+      <div id="modalAlert" class="alert alert-warning m-0 rounded-0 border-0 border-bottom d-none">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> 
+        <span id="modalAlertText">Phát hiện dữ liệu trùng lặp (Năm - Môn - Khối - Tiết).</span>
+      </div>
+
+      <div class="modal-body p-0">
+        <div class="table-responsive">
+          <table class="table table-bordered mb-0 align-middle bg-white" style="min-width: 100%;">
+            <thead class="table-light small text-center sticky-top">
+              <tr>
+                <th style="width:50px"></th> <th class="col-nam-hoc">Năm học*</th>
+                <th class="filter-mon-hoc">Môn*</th> <th class="filter-khoi">Khối*</th>
+                <th class="filter-tuan-cm">Tuần CM*</th> <th class="filter-ppct">PPCT*</th>
+                <th class="filter-bai">Bài</th> <th class="filter-ten-bai-hoc">Tên bài học*</th>
+                <th class="filter-thiet-bi">Thiết bị</th> <th class="filter-dia-diem">Địa điểm</th>
+                <th class="filter-ghi-chu">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody id="formBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer py-2 justify-content-between">
+        <div class="text-danger small fw-bold" id="footerMsg"></div>
+        <div>
+           <button class="btn btn-sm btn-outline-primary fw-bold" id="btnAddRow" onclick="addNewPlanRow()">+ Thêm dòng</button>
+           <button type="button" class="btn btn-success btn-sm px-4 fw-bold" id="btnSave" onclick="submitPlans()">LƯU DỮ LIỆU</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="customAlertModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="alertTitle">Thông báo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body py-3" id="alertMessage"></div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-primary px-4 btn-sm fw-bold" data-bs-dismiss="modal">ĐỒNG Ý</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="customConfirmModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title fw-bold text-dark" id="confirmTitle">Xác nhận thao tác</h5>
+      </div>
+      <div class="modal-body py-4 fs-6" id="confirmMessage"></div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-light px-3 btn-sm fw-bold" data-bs-dismiss="modal">HỦY BỎ</button>
+        <button type="button" class="btn btn-danger px-4 btn-sm fw-bold" id="confirmBtnExecute">THỰC HIỆN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="script.js"></script>
+
+<script>
+
+  let ALL_DATA = [], HEADERS = [], FILTERED_DATA = [], SUGGESTIONS = {};
+  let CURRENT_PAGE = 1, PAGE_SIZE = 50, EDITING_ID = null;
+  const modalObj = new bootstrap.Modal(document.getElementById('addModal'));
+
+  // --- CẬP NHẬT MAPPING: TÊN CỘT KHÔNG CÒN DẤU CÁCH ---
+  const customLabels = {
+    "SchoolYear": "Năm học", "SubjectID": "Môn học", "BlockID": "Khối",
+    "WeekPlan": "Tuần", "ProgramNumber": "PPCT", "LessonNumber": "Số bài",
+    "LessonName": "Tên bài học", "ToolsID": "Thiết bị", "LocationGroupID": "Địa điểm", "Note": "Ghi chú"
+  };
+
+  const displayColumns = [
+    "SchoolYear", "SubjectID", "BlockID", "WeekPlan", "ProgramNumber", 
+    "LessonNumber", "LessonName", "ToolsID", "LocationGroupID", "Note"
+  ];
+
+  window.onload = loadData;
+
+  function showToast(msg, type = 'success') {
+    const id = 'toast' + Date.now();
+    const html = `<div id="${id}" class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert"><div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+    document.getElementById('toastBox').insertAdjacentHTML('beforeend', html);
+    new bootstrap.Toast(document.getElementById(id)).show();
+    setTimeout(() => document.getElementById(id)?.remove(), 5000);
+  }
+
+  async function loadData() {
+    $("#loader").show();
+    const user = JSON.parse(localStorage.getItem('userData'));
+    
+    // Gọi API
+    const res = await callBackend('getPlanData', { userObj: user });
+    
+    $("#loader").hide();
+    
+    if (res && res.success) {
+      ALL_DATA = res.rows || []; 
+      HEADERS = res.headers || [];
+      SUGGESTIONS = res.suggestions || {};
+      FILTERED_DATA = [...ALL_DATA];
+      initFilters();
+    } else {
+      const errorMsg = res ? (res.error || res.message || "Lỗi không xác định") : "Không kết nối được API";
+      showToast(errorMsg, 'error');
+    }
+  }
+
+  function getLabel(col) { return customLabels[col] || col; }
+
+  function getSlug(text) {
+    return text.toString().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+      .replace(/\s+/g, '-') 
+      .replace(/[^a-z0-9-]/g, ''); 
+  }
+
+  function initFilters() {
+    let html = "";
+    const user = JSON.parse(localStorage.getItem('userData')) || {};
+    const isAdmin = user.Permissions === "Admin";
+
+    HEADERS.forEach((col, idx) => {
+      // Bỏ qua cột ID Dòng hoặc Plan ID nếu không cần filter
+      if (col === "ID Dòng" || col === "PlanID") return;
+      if (!isAdmin && !displayColumns.includes(col)) return;
+
+      const label = getLabel(col);
+      const slug = getSlug(label); 
+      const vals = [...new Set(ALL_DATA.map(r => r[idx]))].filter(String).sort();
+
+      html += `<div class="filter-item filter-${slug}">
+        <label class="filter-label">${label}</label>
+        <select class="form-select form-select-sm f-ctrl" data-idx="${idx}" onchange="applyFilters()">
+          <option value="">-- Tất cả --</option>
+          ${vals.map(v => {
+            let d = v;
+            if (col === "BlockID" && SUGGESTIONS.blocks) d = SUGGESTIONS.blocks[v] || v;
+            else if (col === "SubjectID" && SUGGESTIONS.subjects) d = SUGGESTIONS.subjects[v] || v;
+            else if (col === "LocationGroupID" && SUGGESTIONS.locationGroups) d = SUGGESTIONS.locationGroups[v] || v;
+            return `<option value="${encodeURIComponent(v)}">${d}</option>`;
+          }).join('')}
+        </select>
+      </div>`;
+    });
+    document.getElementById('filterArea').innerHTML = html;
+
+    let headerHtml = `<tr><th class="text-center" style="width:40px">Thao tác</th>`;
+    HEADERS.forEach(h => {
+      if (!isAdmin && !displayColumns.includes(h)) return;
+      const label = getLabel(h);
+      const slug = getSlug(label);
+      headerHtml += `<th class="col-${slug}">${label}</th>`;
+    });
+    headerHtml += `</tr>`;
+    document.getElementById('hTable').innerHTML = headerHtml;
+
+    applyFilters(); 
+  }
+
+  function applyFilters() {
+    const filters = document.querySelectorAll('.f-ctrl');
+    FILTERED_DATA = ALL_DATA.filter(row => {
+      return [...filters].every(s => {
+        const v = decodeURIComponent(s.value).trim();
+        return !v || String(row[s.dataset.idx]).trim() === v;
+      });
+    });
+    CURRENT_PAGE = 1;
+    render();
+  }
+
+  function render() {
+    const start = (CURRENT_PAGE - 1) * PAGE_SIZE;
+    const pageData = FILTERED_DATA.slice(start, start + PAGE_SIZE);
+    const tbody = document.getElementById('bTable');
+    
+    const user = JSON.parse(localStorage.getItem('userData')) || {};
+    const isAdmin = user.Permissions === "Admin";
+    const currentUserAccount = user.Account; 
+    
+    // --- CẬP NHẬT TÊN CỘT ĐỂ TÌM INDEX (KHÔNG DẤU CÁCH) ---
+    const bIdx = HEADERS.indexOf("BlockID");
+    const sIdx = HEADERS.indexOf("SubjectID");
+    const lgIdx = HEADERS.indexOf("LocationGroupID");
+    const pIdIdx = HEADERS.indexOf("PlanID");
+    const accUpdateIdx = HEADERS.indexOf("AccountUpdate");
+
+    tbody.innerHTML = pageData.map(row => {
+      const planId = row[pIdIdx];
+      const recordOwner = row[accUpdateIdx]; 
+      const canModify = isAdmin || (recordOwner && recordOwner.toLowerCase() === (currentUserAccount || "").toLowerCase());
+
+      let actionHtml = canModify ? 
+        `<button class="btn btn-sm btn-outline-primary btn-action" onclick="editRow('${planId}')"><i class="bi bi-pencil-square"></i></button>
+         <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteRow('${planId}')"><i class="bi bi-trash"></i></button>` :
+        `<i class="bi bi-lock-fill text-muted"></i>`;
+
+      let rowHtml = `<tr><td class="text-center">${actionHtml}</td>`;
+
+      HEADERS.forEach((colName, idx) => {
+        if (!isAdmin && !displayColumns.includes(colName)) return;
+
+        let display = row[idx] || '';
+        if (idx === bIdx && SUGGESTIONS.blocks) display = SUGGESTIONS.blocks[display] || display;
+        if (idx === sIdx && SUGGESTIONS.subjects) display = SUGGESTIONS.subjects[display] || display;
+        if (idx === lgIdx && SUGGESTIONS.locationGroups) display = SUGGESTIONS.locationGroups[display] || display;
+
+        const slug = getSlug(getLabel(colName));
+        rowHtml += `<td class="col-${slug}">${display}</td>`;
+      });
+      return rowHtml + `</tr>`;
+    }).join('');
+
+    updatePagination();
+  }
+  
+  function updatePagination() {
+    const total = FILTERED_DATA.length;
+    const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+    document.getElementById('pageInfo').innerHTML = `Tổng: ${total} dòng`;
+    let html = `<li class="page-item ${CURRENT_PAGE===1?'disabled':''}"><a class="page-link" onclick="goToPage(${CURRENT_PAGE-1})">Trước</a></li>`;
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= CURRENT_PAGE - 1 && i <= CURRENT_PAGE + 1)) {
+        html += `<li class="page-item ${i===CURRENT_PAGE?'active':''}"><a class="page-link" onclick="goToPage(${i})">${i}</a></li>`;
+      } else if (i === CURRENT_PAGE - 2 || i === CURRENT_PAGE + 2) {
+         html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+      }
+    }
+    html += `<li class="page-item ${CURRENT_PAGE===totalPages?'disabled':''}"><a class="page-link" onclick="goToPage(${CURRENT_PAGE+1})">Sau</a></li>`;
+    document.getElementById('paginationControls').innerHTML = html;
+  }
+
+  function goToPage(p) {
+    if (p >= 1 && p <= Math.ceil(FILTERED_DATA.length / PAGE_SIZE)) {
+      CURRENT_PAGE = p;
+      render();
+    }
+  }
+
+  function openAddModal() {
+    EDITING_ID = null;
+    document.getElementById('modalTitle').innerText = "THIẾT LẬP KẾ HOẠCH MỚI";
+    document.getElementById('btnAddRow').style.display = "inline-block";
+    document.getElementById('formBody').innerHTML = '';
+    document.getElementById('modalAlert').classList.add('d-none'); 
+    addNewPlanRow();
+    modalObj.show();
+  }
+
+  function addNewPlanRow(data = null) {
+    const tr = document.createElement('tr');
+    
+    const hIdx = (name) => HEADERS.indexOf(name);
+    const makeOptions = (source, selectedId, isMap = true) => {
+      if (!source) return '';
+      if (isMap) {
+        return Object.entries(source).map(([id, name]) => 
+          `<option value="${id}" ${selectedId == id ? 'selected' : ''}>${name}</option>`
+        ).join('');
+      } else {
+        return source.map(item => 
+          `<option value="${item.name}" ${selectedId === item.name ? 'selected' : ''}>${item.name}</option>`
+        ).join('');
+      }
+    };
+
+    // --- CẬP NHẬT TÊN CỘT (KHÔNG DẤU CÁCH) ĐỂ LẤY DỮ LIỆU ---
+    const syOpts = makeOptions(SUGGESTIONS.schoolYears, data ? data[hIdx('SchoolYear')] : '', false);
+    const subOpts = '<option value="">-- Chọn Môn --</option>' + makeOptions(SUGGESTIONS.subjects, data ? data[hIdx('SubjectID')] : '');
+    const blkOpts = '<option value="">-- Chọn Khối --</option>' + makeOptions(SUGGESTIONS.blocks, data ? data[hIdx('BlockID')] : '');
+    const grpOpts = '<option value="">-- Chọn Nhóm --</option>' + makeOptions(SUGGESTIONS.locationGroups, data ? data[hIdx('LocationGroupID')] : '');
+
+    tr.innerHTML = `
+      <td class="text-center align-middle" style="white-space:nowrap">
+        <span class="fw-bold d-block d-md-none text-muted">Thao tác</span>
+        <div>
+            <i class="bi bi-x-circle text-danger" style="cursor:pointer" onclick="removeRow(this)" title="Xóa dòng"></i>
+            <span class="status-icon"></span>
+        </div>
+      </td>
+      <td data-label="Năm học"><select class="form-select form-select-sm validate-input">${syOpts}</select></td>
+      <td data-label="Môn học"><select class="form-select form-select-sm validate-input">${subOpts}</select></td>
+      <td data-label="Khối"><select class="form-select form-select-sm validate-input" required>${blkOpts}</select></td>
+      <td data-label="Tuần CM"><input type="number" class="form-control form-control-sm text-center" value="${data ? data[hIdx('WeekPlan')] : ''}"></td>
+      <td data-label="PPCT"><input type="number" class="form-control form-control-sm text-center validate-input" value="${data ? data[hIdx('ProgramNumber')] : ''}"></td>
+      <td data-label="Số bài"><input type="number" class="form-control form-control-sm text-center" value="${data ? data[hIdx('LessonNumber')] : ''}"></td>
+      <td data-label="Tên bài học"><input type="text" class="form-control form-control-sm" value="${data ? data[hIdx('LessonName')] : ''}"></td>
+      <td data-label="Thiết bị"><input type="text" class="form-control form-control-sm" value="${data ? data[hIdx('ToolsID')] : ''}"></td>
+      <td data-label="Địa điểm"><select class="form-select form-select-sm">${grpOpts}</select></td>
+      <td data-label="Ghi chú"><input type="text" class="form-control form-control-sm" value="${data ? data[hIdx('Note')] : ''}"></td>`;
+      
+    document.getElementById('formBody').appendChild(tr);
+
+    tr.querySelectorAll('.validate-input').forEach(el => {
+        el.addEventListener('change', () => checkDuplicate(tr));
+        el.addEventListener('input', () => checkDuplicate(tr));
+    });
+
+    if (EDITING_ID) checkDuplicate(tr, true);
+  }
+
+  function removeRow(btn) {
+    btn.closest('tr').remove();
+    checkAllRows();
+  }
+
+  function checkDuplicate(tr, isInitEdit = false) {
+    const inputs = tr.querySelectorAll('input, select');
+    // Input Mapping: 0:Năm, 1:Môn, 2:Khối, 3:Tuần, 4:PPCT
+    const vals = { y: inputs[0].value, s: inputs[1].value, b: inputs[2].value, p: inputs[4].value };
+    const iconArea = tr.querySelector('.status-icon');
+    
+    if(!vals.y || !vals.s || !vals.b || !vals.p) {
+        tr.classList.remove('row-error');
+        tr.dataset.valid = "neutral";
+        iconArea.innerHTML = '';
+        checkAllRows();
+        return;
+    }
+
+    const h = (n) => HEADERS.indexOf(n);
+    // --- CẬP NHẬT TÊN CỘT CHECK TRÙNG (KHÔNG DẤU CÁCH) ---
+    const iY=h('SchoolYear'), iS=h('SubjectID'), iB=h('BlockID'), iP=h('ProgramNumber'), iPlanId = h('PlanID');
+
+    const isExist = ALL_DATA.some(row => {
+        if (EDITING_ID && row[iPlanId] === EDITING_PlanID) return false;
+        return String(row[iY]) === String(vals.y) && String(row[iS]) === String(vals.s) &&
+               String(row[iB]) === String(vals.b) && String(row[iP]) === String(vals.p);
+    });
+
+    tr.classList.remove('row-error');
+    if (isExist) {
+        tr.classList.add('row-error');
+        tr.dataset.valid = "false";
+        iconArea.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-danger" title="Trùng lặp!"></i>`;
+    } else {
+        tr.dataset.valid = "true";
+        iconArea.innerHTML = `<i class="bi bi-check-circle-fill text-success"></i>`;
+    }
+    checkAllRows();
+  }
+
+  function checkAllRows() {
+     const rows = document.querySelectorAll('#formBody tr');
+     let hasError = false;
+     rows.forEach(r => { if(r.dataset.valid === "false") hasError = true; });
+
+     const btn = document.getElementById('btnSave');
+     const alertBox = document.getElementById('modalAlert');
+     const footerMsg = document.getElementById('footerMsg');
+
+     if(hasError) {
+         btn.disabled = true;
+         alertBox.classList.remove('d-none');
+         footerMsg.innerHTML = '<i class="bi bi-exclamation-circle"></i> Vui lòng sửa các dòng bị trùng.';
+     } else {
+         alertBox.classList.add('d-none');
+         btn.disabled = (rows.length === 0);
+         footerMsg.innerHTML = '';
+     }
+  }
+
+  let EDITING_PlanID = null;
+
+  async function submitPlans() {
+    const user = JSON.parse(localStorage.getItem('userData')) || { Account: "User" };
+    const rows = document.querySelectorAll('#formBody tr');
+    const dataArr = [];
+    let isValid = true;
+
+    rows.forEach(tr => {
+      const v = tr.querySelectorAll('input, select');
+      const schoolYear = v[0].value;
+      const subjectId = v[1].value;
+      const blockId = v[2].value;
+      const weekPlan = v[3].value;
+      const progNum = v[4].value;
+      const lessonName = v[6].value;
+
+      if (!schoolYear || !subjectId || !blockId || !weekPlan || !progNum || !lessonName) {
+        isValid = false;
+        tr.style.backgroundColor = "#fff5f5";
+      } else {
+        tr.style.backgroundColor = "";
+      }
+
+      dataArr.push({
+        schoolYear, subjectId, blockId, weekPlan, progNum,
+        lessonNum: v[5].value, lessonName,
+        toolsId: v[7].value, locationGroupId: v[8].value, note: v[9].value,            
+        accountUpdate: user.Account, idDòng: EDITING_ID
+      });
+    });
+
+    if (!isValid) {
+      showToast("Vui lòng nhập đầy đủ các trường bắt buộc (*)", "error");
+      return;
+    }
+
+    const btn = document.getElementById('btnSave');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
+
+    // Gọi API Save
+    const res = await callBackend('savePlanData', { dataArr: dataArr });
+
+    btn.disabled = false;
+    btn.innerText = "LƯU DỮ LIỆU";
+    if (res.success) {
+      modalObj.hide();
+      showToast("Lưu thành công!");
+      loadData();
+    } else {
+      showToast(res.error, "error");
+    }
+  }
+
+  function deleteRow(planId) {
+    // --- CẬP NHẬT TÊN CỘT TÌM ID XÓA ---
+    const rowData = ALL_DATA.find(r => r[HEADERS.indexOf("PlanID")] === planId);
+    if (!rowData) return;
+    const user = JSON.parse(localStorage.getItem('userData'));
+    const owner = rowData[HEADERS.indexOf("AccountUpdate")];
+
+    if (user.Permissions !== "Admin" && owner !== user.Account) {
+      showToast("Không có quyền xóa dữ liệu người khác!", "error");
+      return;
+    }
+
+    myConfirm(`Xóa kế hoạch ${planId}?`, async () => {
+      $("#loader").show();
+      const res = await callBackend('deletePlanRow', { planId: planId });
+      $("#loader").hide();
+      if (res.success) {
+        showToast("Đã xóa");
+        loadData();
+      } else {
+        showToast(res.error, "error");
+      }
+    });
+  }
+
+  function editRow(planId) {
+    // --- CẬP NHẬT TÊN CỘT TÌM ID SỬA ---
+    const rowData = ALL_DATA.find(r => r[HEADERS.indexOf("PlanID")] === planId);
+    if (!rowData) return;
+    const user = JSON.parse(localStorage.getItem('userData'));
+    
+    if (user.Permissions !== "Admin" && rowData[HEADERS.indexOf("AccountUpdate")] !== user.Account) {
+      showToast("Không có quyền sửa dữ liệu người khác!", "error");
+      return;
+    }
+
+    EDITING_ID = ALL_DATA.indexOf(rowData) + 2; 
+    EDITING_PlanID = planId; 
+    document.getElementById('modalTitle').innerText = "CẬP NHẬT KẾ HOẠCH: " + planId;
+    document.getElementById('btnAddRow').style.display = "none";
+    document.getElementById('formBody').innerHTML = '';
+    document.getElementById('modalAlert').classList.add('d-none');
+    addNewPlanRow(rowData);
+    modalObj.show();
+  }
+
+  function myConfirm(msg, cb) {
+    document.getElementById('confirmMessage').innerText = msg;
+    const m = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+    const btn = document.getElementById('confirmBtnExecute');
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.onclick = () => { m.hide(); cb(); };
+    m.show();
+  }
+  
+  function goHome() { window.location.href = "wellcome.html"; }
+</script>
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SMART SCHOOL - Lịch dạy</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="style.css">
+  
+  <style>
+    /* ==========================================================================
+       GIỮ NGUYÊN CSS GỐC CỦA BẠN (QUY TẮC BẢO TOÀN)
+       ========================================================================== */
+    :root {
+      --primary-school: #0d47a1; /* Xanh dương */
+      --card-bg: #ffffff;
+      --text-muted: #64748b;
+      --danger-red: #ef4444;     /* Đỏ */
+      --warning-yellow: #f59e0b; /* Vàng */
+      --success-green: #22c55e;  /* Xanh lá */
+    }
+    body { 
+      background-color: #f0f2f5; 
+      font-family: 'Inter', sans-serif; 
+      margin: 0; padding-bottom: 30px; 
+    }
+    
+    .header-sticky {
+      position: sticky; top: 0; z-index: 1000;
+      background: var(--primary-school); color: white;
+      padding: 10px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header-content {
+      width: 70%; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .date-picker-header {
+      background: rgba(255, 255, 255, 0.2); 
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 6px 12px; border-radius: 6px; 
+      font-size: 13px; outline: none; cursor: pointer;
+    }
+    .date-picker-header option {
+      color: #000000 !important;
+      background-color: #ffffff !important;
+    }
+
+    .main-wrapper { width: 70%; margin: 20px auto; }
+    .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+
+    .lesson-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 15px;
+      display: flex; flex-direction: column;
+      border-top: 5px solid var(--primary-school); 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      min-height: 250px;
+      transition: border-color 0.3s ease;
+    }
+
+    .class-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .class-name { font-weight: 800; font-size: 1.1rem; color: #333; } 
+    
+    .week-info-red {
+      color: var(--danger-red);
+      font-size: 11px;
+      font-weight: normal; 
+      text-align: left;
+      line-height: 1.5;
+      min-width: 120px;
+      display: flex; flex-direction: column; align-items: flex-start;
+    }
+    
+    .subject-title { font-weight: 700; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 12px; }
+
+    .lesson-content {
+      flex-grow: 1; background: #f8fafc; padding: 12px; border-radius: 8px;
+      margin-bottom: 12px; border: 1px solid #edf2f7;
+    }
+    
+    .lesson-meta { 
+      font-size: 11px; color: var(--primary-school); 
+      font-weight: 700; margin-bottom: 4px; display: block;
+      width: fit-content;
+    }
+    
+    .lesson-name {
+      font-size: 0.95rem; line-height: 1.45; color: #1e293b; font-weight: 600;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .note-text { font-style: italic; color: #ef4444; font-size: 11px; margin-top: 8px; border-top: 1px dashed #cbd5e1; padding-top: 6px; }
+
+    .extra-info {
+      font-size: 10.5px; color: var(--text-muted);
+      border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: auto;
+    }
+    .info-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .info-item i { color: #94a3b8; font-size: 12px; width: 14px; text-align: center; }
+
+    @media (max-width: 1200px) { .main-wrapper, .header-content { width: 85%; } }
+    @media (max-width: 900px) { .schedule-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) {
+      .main-wrapper, .header-content { width: 95%; }
+      .schedule-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header-sticky">
+    <div class="header-content">
+      <button class="btn btn-outline-light btn-sm me-3" onclick="goHome()" title="Trang chủ"><i class="bi bi-house"></i></button>
+      <div class="fw-bold" style="font-size: 14px;">LỊCH GIẢNG DẠY</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <select id="dateFilter" class="date-picker-header" onchange="loadData()"></select>
+        <div onclick="loadData()" style="cursor:pointer;"><i class="bi bi-arrow-clockwise fs-4"></i></div>
+      </div>
+    </div>
+</div>
+
+<div class="main-wrapper">
+    <div class="schedule-grid" id="cardList"></div>
+    <div id="loading" style="text-align:center; padding:80px 0; grid-column:span 3; display:none;">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+    <div id="noData" style="text-align:center; padding:80px 0; grid-column:span 3; display:none;">
+        <i class="bi bi-calendar-x text-muted fs-1"></i>
+        <p class="mt-3 text-muted fw-bold">Không có lịch dạy cho ngày này.</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="script.js"></script>
+
+<script>
+
+  const userJson = localStorage.getItem('userData');
+  let user = (!userJson || userJson === "undefined") ? { Account: "Guest" } : JSON.parse(userJson);
+  let TIME_CONFIG = [];
+
+  window.onload = async function() {
+    generateDates();
+    
+    // 1. Lấy cấu hình thời gian
+    const resTime = await callBackend('getAllTimeConfig', {});
+    
+    if (resTime && Array.isArray(resTime)) {
+        TIME_CONFIG = resTime;
+    } else {
+        // Fallback nếu server trả về object {success:true, data: []}
+        TIME_CONFIG = (resTime && resTime.data) ? resTime.data : [];
+    }
+    
+    loadData();
+  };
+
+  function goHome() { window.location.href = "wellcome.html"; }
+
+  function generateDates() {
+    const select = document.getElementById('dateFilter');
+    const today = new Date();
+    for (let i = -15; i <= 15; i++) {
+      let d = new Date(); d.setDate(today.getDate() + i);
+      let dd = String(d.getDate()).padStart(2, '0');
+      let mm = String(d.getMonth() + 1).padStart(2, '0');
+      let yyyy = d.getFullYear();
+      let dateVal = `${dd}/${mm}/${yyyy}`;
+      let opt = document.createElement('option');
+      opt.value = dateVal;
+      opt.text = (i === 0) ? "Hôm nay " + dd + "/" + mm : dateVal;
+      if (i === 0) opt.selected = true;
+      select.appendChild(opt);
+    }
+  }
+
+  async function loadData() {
+    const date = document.getElementById('dateFilter').value;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('noData').style.display = 'none';
+    document.getElementById('cardList').innerHTML = '';
+
+    // 2. Lấy dữ liệu báo giảng
+    const res = await callBackend('getUserReportsByDate', {
+        userAccount: user.Account,
+        targetDate: date
+    });
+
+    if (res && (res.status === "SUCCESS" || res.success)) {
+        renderCards({ data: res.data || [] });
+    } else {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('noData').style.display = 'block';
+    }
+  }
+
+  function parseDate(dateStr) {
+    if(!dateStr) return new Date(0); 
+    const parts = dateStr.split('/');
+    return new Date(parts[2], parts[1] - 1, parts[0]);
+  }
+
+  function formatTimeShort(timeStr) {
+    if (!timeStr) return "";
+    return timeStr.substring(0, 5);
+  }
+
+  // --- LOGIC XỬ LÝ THỜI GIAN (BẢO TOÀN) ---
+  function getTimeInfo(reportDateStr, session, num) {
+    if (!TIME_CONFIG || TIME_CONFIG.length === 0) return null;
+    
+    const sInput = String(session).trim().toLowerCase();
+    const nInput = String(num).trim();
+    const reportDateObj = parseDate(reportDateStr);
+
+    const candidates = TIME_CONFIG.filter(item => {
+      const sConfig = String(item.session).trim().toLowerCase();
+      const nConfig = String(item.num).trim();
+      return sConfig === sInput && nConfig === nInput;
+    });
+
+    if (candidates.length === 0) return null;
+
+    candidates.sort((a, b) => parseDate(b.effDate) - parseDate(a.effDate));
+    const match = candidates.find(item => parseDate(item.effDate) <= reportDateObj);
+
+    if (match) {
+      return {
+        text: `${formatTimeShort(match.begin)} - ${formatTimeShort(match.end)}`,
+        start: match.begin, 
+        end: match.end      
+      };
+    }
+    return null;
+  }
+
+  function getBorderColor(dateStr, startStr, endStr) {
+    const COLOR_BLUE = 'var(--primary-school)';
+    const COLOR_YELLOW = 'var(--warning-yellow)';
+    const COLOR_RED = 'var(--danger-red)';
+    const COLOR_GREEN = 'var(--success-green)';
+
+    if (!startStr || !endStr) return COLOR_BLUE;
+
+    const now = new Date(); 
+    const dateParts = dateStr.split('/'); 
+    
+    const start = new Date(dateParts[2], dateParts[1]-1, dateParts[0]);
+    const sTime = startStr.split(':');
+    start.setHours(sTime[0], sTime[1], 0);
+
+    const end = new Date(dateParts[2], dateParts[1]-1, dateParts[0]);
+    const eTime = endStr.split(':');
+    end.setHours(eTime[0], eTime[1], 0);
+
+    if (now > end) return COLOR_RED;
+    if (now >= start && now <= end) return COLOR_GREEN;
+    if (now < start) {
+       const diffMs = start - now;
+       const diffMins = diffMs / 60000; 
+       if (diffMins <= 60) return COLOR_YELLOW;
+    }
+    return COLOR_BLUE;
+  }
+
+  function renderCards(res) {
+    document.getElementById('loading').style.display = 'none';
+    const container = document.getElementById('cardList');
+    
+    if (!res.data || res.data.length === 0) {
+      document.getElementById('noData').style.display = 'block';
+      return;
+    }
+
+    const selectedDate = document.getElementById('dateFilter').value;
+
+    res.data.forEach(item => {
+      // Các cột đã được bạn sửa thành không khoảng trống (weekPlan, progNum,...)
+      const weekTxt = item.weekPlan || '...';
+      const ppctTxt = item.progNum || '...';
+      const lessonTxt = item.lessonNum || '...';
+      const nh = item.weekSY || '...';
+      const cm = item.weekCM || '...';
+      const session = item.session || '...';
+      const sNum = item.sessionNum || '...';
+
+      const timeInfo = getTimeInfo(selectedDate, session, sNum);
+      const timeDisplay = timeInfo ? `• ${timeInfo.text}` : '';
+      
+      let borderColor = 'var(--primary-school)'; 
+      if (timeInfo) {
+         borderColor = getBorderColor(selectedDate, timeInfo.start, timeInfo.end);
+      }
+
+      const card = document.createElement('div');
+      card.className = 'lesson-card';
+      
+      card.style.borderTopColor = borderColor;
+      const classNameColor = borderColor === 'var(--warning-yellow)' ? '#d97706' : borderColor;
+
+      card.innerHTML = `
+        <div class="class-header">
+          <span class="class-name" style="color:${classNameColor}">
+            <i class="bi bi-door-open-fill me-1"></i>${item.className}
+          </span>
+          <div class="week-info-red">
+              • Tuần công tác ${nh}<br>
+              • Tuần chuyên môn ${cm}<br>
+              • ${session} - ${sNum}<br>
+              ${timeDisplay ? `<b>${timeDisplay}</b>` : ''}
+          </div>
+        </div>
+        
+        <div class="subject-title">${item.subjectName}</div>
+        
+        <div class="lesson-content">
+          <span class="lesson-meta" style="color:${classNameColor}">
+            Tuần ${weekTxt} • Tiết: ${ppctTxt} • Bài: ${lessonTxt}
+          </span>
+          <div class="lesson-name">${item.lessonName || 'Chưa có tên bài học'}</div>
+          ${item.note ? `<div class="note-text"><i class="bi bi-info-circle me-1"></i>${item.note}</div>` : ''}
+        </div>
+
+        <div class="extra-info">
+          <div class="info-item"><i class="bi bi-geo-alt"></i> <b>_</b> ${item.locationId || '---'}</div>
+          <div class="info-item"><i class="bi bi-person-circle"></i> <b>_</b> ${item.accountUpdate || '---'}</div>
+          <div class="info-item"><i class="bi bi-clock-history"></i> <b>_</b> ${item.time || '---'}</div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+</script>
+</body>
+</html>
