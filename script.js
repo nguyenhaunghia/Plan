@@ -2,7 +2,8 @@
  * 1. CẤU HÌNH DÙNG CHUNG (GLOBAL CONFIG)
  * ========================================================================== */
 
-const API_URL = "https://script.google.com/macros/s/AKfycbx5Y8lIHmsmtykfqcvx3QQXEZgLWg6G6AyyUEGPOHL20DaVCmrdiKrN707j-UVK0-YV/exec"; 
+// Giữ nguyên URL API hiện tại của bạn
+const API_URL = "https://script.google.com/macros/s/AKfycbyA2cKGGij8CNIitS99nkb6bL5fsVUaJBycOg3GJxqKP9EJRExYGBMJT9OfqOtxnMNp/exec"; 
 
 /** * 2. HÀM GỌI SERVER DÙNG CHUNG (API BRIDGE)
  * Thay thế hoàn toàn cho google.script.run ở mọi trang  */
@@ -13,10 +14,18 @@ async function callBackend(action, data = {}) {
         return { success: false, error: "Chưa cấu hình API URL" };
     }
 
-    const url = `${API_URL}?action=${action}&data=${encodeURIComponent(JSON.stringify(data))}`;
-    
+    // --- [UPDATE QUAN TRỌNG] CHUYỂN SANG POST ĐỂ GỬI DỮ LIỆU LỚN KHÔNG BỊ LỖI ---
+    // Sử dụng URLSearchParams để đóng gói dữ liệu, Server (doPost) sẽ nhận được y hệt như GET
+    const formData = new URLSearchParams();
+    formData.append('action', action);
+    formData.append('data', JSON.stringify(data));
+
     try {
-        const response = await fetch(url);
+        const response = await fetch(API_URL, {
+            method: "POST", // Đổi từ GET (mặc định) sang POST
+            body: formData  // Gửi dữ liệu trong body thay vì URL
+        });
+        
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return await response.json();
     } catch (e) {
