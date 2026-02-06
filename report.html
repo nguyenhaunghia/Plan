@@ -6,16 +6,13 @@
   <title>Quản lý Báo giảng</title>
   
   <link rel="stylesheet" href="style.css">
-  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
   <style>
-    /* ==========================================================================
-       GIỮ NGUYÊN CSS GỐC CỦA BẠN (QUY TẮC BẢO TOÀN)
-       ========================================================================== */
+    /* GIỮ NGUYÊN CSS CỦA BẠN */
     html, body { height: 100%; margin: 0; overflow: hidden; }
     body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 13px; display: flex; flex-direction: column; }
     .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -75,10 +72,7 @@
 </nav>
 
 <div class="main-content">
-  <div class="filter-card">
-    <div id="filterArea" class="d-flex flex-wrap gap-3"></div>
-  </div>
-
+  <div class="filter-card"><div id="filterArea" class="d-flex flex-wrap gap-3"></div></div>
   <div class="table-container">
     <div class="table-responsive-custom">
       <table class="table table-hover mb-0" id="mainTable">
@@ -172,12 +166,11 @@
 <script src="script.js"></script>
 
 <script>
-  
   let ALL_DATA = [], HEADERS = [], FILTERED_DATA = [], SUGGESTIONS = { classes: {}, subjects: {}, teachers: {}, locations: {}, schoolYears: [] };
   let CURRENT_PAGE = 1, PAGE_SIZE = 30, CURRENT_SCHOOL_YEAR = "";
   const modalObj = new bootstrap.Modal(document.getElementById('addModal'));
 
-  // --- [QUAN TRỌNG] CẬP NHẬT MAPPING TÊN CỘT (KHÔNG DẤU CÁCH) ---
+  // --- CẬP NHẬT MAPPING TÊN CỘT (KHÔNG DẤU CÁCH) ---
   const customLabels = {
     "NamHoc": "Năm học", "WeekSchoolYear": "Tuần", "Date": "Ngày",
     "ClassName": "Lớp", "Session": "Buổi", "SessionNumber": "Tiết",
@@ -188,7 +181,7 @@
   
   const ADMIN_ONLY_COLS = ["AccountUpdate", "TimeUpdate", "Note", "LessonNumber"];
   
-  // Tên biến sử dụng trong Array phải khớp với key trả về từ Server (Code.gs)
+  // Tên biến phải khớp với key trả về từ Server (Code.gs)
   const ORDERED_COLS = ["NamHoc", "WeekSchoolYear", "Date", "ClassName", "Session", "SessionNumber", "SubjectName", "ProgramNumber", "LessonNumber", "LessonName", "TeacherName", "LocationName", "Note", "AccountUpdate", "TimeUpdate"];
 
   $(function() { $("#draggableModal").parent().draggable({ handle: ".modal-header" }); });
@@ -217,7 +210,6 @@
   }
 
   function goHome() { window.location.href = "wellcome.html"; }
-
   function getLabel(col) { return customLabels[col] || col; }
 
   function applyFilters() {
@@ -262,7 +254,6 @@
       const uniqueVals = [...new Set(ALL_DATA.map(r => r[idx]))].filter(String).sort();
       
       const opts = uniqueVals.map(v => {
-        // So sánh với CURRENT_SCHOOL_YEAR (vẫn dùng tên hiển thị tiếng Việt)
         const isDefaultYear = (label === "Năm học" && v.trim() === CURRENT_SCHOOL_YEAR.trim());
         const selected = isDefaultYear ? "selected" : "";
         let display = (h === "LocationName") ? (SUGGESTIONS.locations[v] || v) : v;
@@ -293,9 +284,7 @@
     }
     document.getElementById('bTable').innerHTML = pageData.map(row => {
       let cells = "";
-      // Cập nhật tìm index cột ID (không dấu cách)
       const rowId = row[HEADERS.indexOf("IDDong")]; 
-      
       const rowJson = encodeURIComponent(JSON.stringify(row));
 
       cells += `
@@ -395,7 +384,6 @@
       const teachEntry = Object.entries(SUGGESTIONS.teachers).find(([id, name]) => name === teachName);
       if(teachEntry) tr.querySelector('.teacher-sel').value = teachEntry[0];
 
-      // LocationName là tên, cần map về ID
       const locName = getVal("LocationName");
       const locEntry = Object.entries(SUGGESTIONS.locations).find(([id, name]) => name === locName);
       if(locEntry) tr.querySelector('.loc-sel').value = locEntry[0];
@@ -557,7 +545,6 @@
       const isEdit = tr.dataset.isEdit === "true";
       let reportId = tr.dataset.reportId;
       
-      // LOGIC TẠO ID (BẢO TOÀN)
       if (!isEdit || !reportId) {
         const rawDateInput = tr.querySelector('.date-input').value; 
         const classVal = tr.querySelector('.class-sel').value; 
@@ -601,7 +588,6 @@
     btn.disabled = true; 
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
     
-    // Gọi API lưu
     const res = await callBackend('saveReportData', { rows, user: JSON.parse(localStorage.getItem('userData')) });
     
     if (res && res.success) { 
