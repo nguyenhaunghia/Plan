@@ -14,16 +14,17 @@ async function callBackend(action, data = {}) {
         return { success: false, error: "Chưa cấu hình API URL" };
     }
 
-    // --- [UPDATE QUAN TRỌNG] CHUYỂN SANG POST ĐỂ GỬI DỮ LIỆU LỚN KHÔNG BỊ LỖI ---
-    // Sử dụng URLSearchParams để đóng gói dữ liệu, Server (doPost) sẽ nhận được y hệt như GET
+    // --- [UPDATE] SỬ DỤNG POST ĐỂ GỬI DỮ LIỆU LỚN KHÔNG BỊ LỖI ---
+    // Sử dụng URLSearchParams để đóng gói dữ liệu, Server (doPost) sẽ nhận được 
+    // vào e.parameter y hệt như cách dùng GET cũ, nhưng không bị giới hạn độ dài.
     const formData = new URLSearchParams();
     formData.append('action', action);
     formData.append('data', JSON.stringify(data));
 
     try {
         const response = await fetch(API_URL, {
-            method: "POST", // Đổi từ GET (mặc định) sang POST
-            body: formData  // Gửi dữ liệu trong body thay vì URL
+            method: "POST", // Chuyển từ GET sang POST
+            body: formData  // Gửi dữ liệu trong body
         });
         
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -117,4 +118,3 @@ function logoutConfirm() {
 document.addEventListener("DOMContentLoaded", function() {
     console.log("Hệ thống giao diện đã sẵn sàng.");
 });
-
