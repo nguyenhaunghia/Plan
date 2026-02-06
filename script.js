@@ -3,7 +3,7 @@
  * ========================================================================== */
 
 // Giữ nguyên URL API hiện tại của bạn
-const API_URL = "https://script.google.com/macros/s/AKfycbzd8UT2Eldb8dIR9NdjH3MTbHDXbbiDA0zyOt4-ZUGR84pMerU4PF-P__xsyzefUaou/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbwpLdy4qyZuePE0z3v0SSm7ukQ_GJGWWkp_otL0dniuColNCK2Rel8ry7-JKXtDgLDj/exec"; 
 
 /** * 2. HÀM GỌI SERVER DÙNG CHUNG (API BRIDGE)
  * Thay thế hoàn toàn cho google.script.run ở mọi trang  */
@@ -118,3 +118,4 @@ function logoutConfirm() {
 document.addEventListener("DOMContentLoaded", function() {
     console.log("Hệ thống giao diện đã sẵn sàng.");
 });
+
