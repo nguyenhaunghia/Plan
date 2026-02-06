@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Báo cáo tự động (Auto Report)</title>
   
   <link rel="stylesheet" href="style.css">
@@ -219,11 +219,10 @@
       const container = document.getElementById("qrGridContainer");
       container.innerHTML = '<div class="qr-loading"><span><i class="fas fa-circle-notch fa-spin"></i> Đang tải dữ liệu...</span></div>';
       
-      // [QUAN TRỌNG] Lấy Account từ user object để gửi lên server
-      // Nếu user.Account null, fallback về user['User ID'] hoặc chuỗi rỗng
+      // Lấy Account từ user object để gửi lên server
       const userEmailToSend = user['Account'] || user['User ID'] || "";
       
-      // GỌI API: Truyền tham số userEmail vào để Code.gs xử lý đúng logic check
+      // GỌI API
       const data = await callBackend('getQuickReportConfig', { userEmail: userEmailToSend });
       
       renderQRInterface(data);
@@ -318,8 +317,19 @@
 
        toggleBtnLoading(true);
 
+       // --- FIX BUG CHỈ CÓ 1 DÒNG: MAPPING USER ĐỂ KHỚP VỚI SERVER ---
+       const userForServer = { ...user };
+       // Server Code.gs (getMultiWeekTKBPreview) tìm "Reminiscent Name" (có dấu cách)
+       // Nhưng localStorage hiện tại lưu "ReminiscentName" (không dấu cách)
+       if (userForServer.ReminiscentName && !userForServer["Reminiscent Name"]) {
+           userForServer["Reminiscent Name"] = userForServer.ReminiscentName;
+       }
+       if (userForServer.UserID && !userForServer["User ID"]) {
+           userForServer["User ID"] = userForServer.UserID;
+       }
+
        // Gọi API lấy dữ liệu xem trước từ TKB
-       const rows = await callBackend('getTKBPreviewData', { from: startDateStr, to: endDateStr, userObj: user });
+       const rows = await callBackend('getTKBPreviewData', { from: startDateStr, to: endDateStr, userObj: userForServer });
        
        toggleBtnLoading(false);
        document.getElementById('formBody').innerHTML = '';
@@ -339,10 +349,16 @@
                return rTs >= startTs && rTs <= endTs;
            });
 
-           if (filteredRows.length > 0) filteredRows.forEach(r => addNewFormRow(r));
-           else addNewFormRow(); 
+           if (filteredRows.length > 0) {
+               // --- FIX BUG: DÙNG VÒNG LẶP AWAIT ĐỂ ĐẢM BẢO RENDER ĐỦ DÒNG ---
+               for (const r of filteredRows) {
+                   await addNewFormRow(r);
+               }
+           } else {
+               await addNewFormRow(); 
+           }
        } else {
-           addNewFormRow(); 
+           await addNewFormRow(); 
        }
 
        reCalcAllProgNums();
@@ -368,7 +384,8 @@
     }
 
     // --- FORM LOGIC (BẢO TOÀN) ---
-    function addNewFormRow(init = null) {
+    // Chuyển thành Async để dùng Await trong vòng lặp render
+    async function addNewFormRow(init = null) {
       const tr = document.createElement('tr');
       let sessionOpts = `<option>Sáng</option><option>Chiều</option>`;
       let snOpts = Array.from({length:10},(_,i)=>`<option>${i+1}</option>`).join('');
